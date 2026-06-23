@@ -1,12 +1,383 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Duplo J - HFI</title>
+  <title>Duplo J HFI</title>
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Duplo J HFI" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #1a1a1a; }
+    .app { max-width: 480px; margin: 0 auto; padding: 1rem; }
+
+    .header { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 12px; }
+    .header-icon { width: 42px; height: 42px; background: #e8f0fe; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .header h1 { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+    .header p { font-size: 13px; color: #666; }
+
+    .sync-badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; margin-left: 6px; font-weight: 500; }
+    .sync-ok { background: #d1fae5; color: #065f46; }
+    .sync-err { background: #fee2e2; color: #991b1b; }
+    .sync-ing { background: #fef3c7; color: #92400e; }
+
+    .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+
+    .field { margin-bottom: 12px; }
+    .field label { font-size: 13px; color: #555; display: block; margin-bottom: 4px; font-weight: 500; }
+    .field select, .field input { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fff; color: #1a1a1a; appearance: none; -webkit-appearance: none; }
+    .field select:focus, .field input:focus { outline: none; border-color: #4f7df0; box-shadow: 0 0 0 3px rgba(79,125,240,0.1); }
+
+    .btn-primary { width: 100%; padding: 11px; background: #4f7df0; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+    .btn-primary:active { background: #3a68d8; }
+    .btn-secondary { padding: 7px 14px; background: #f5f5f5; color: #444; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 500; }
+    .btn-secondary:active { background: #e8e8e8; }
+    .btn-danger { padding: 7px 14px; background: #fff0f0; color: #c0392b; border: 1px solid #fcc; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 500; }
+
+    .hidden { display: none; }
+
+    .nav { display: flex; gap: 6px; margin-bottom: 1rem; background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 4px; }
+    .nav-btn { flex: 1; padding: 8px; background: transparent; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; color: #666; font-weight: 500; }
+    .nav-btn.active { background: #4f7df0; color: #fff; }
+
+    .stent-card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+    .stent-card .nome { font-size: 15px; font-weight: 600; color: #1a1a1a; }
+    .stent-card .info { font-size: 12px; color: #666; margin-top: 3px; line-height: 1.6; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 6px; margin-top: 6px; font-weight: 600; }
+    .badge-ativo { background: #d1fae5; color: #065f46; }
+    .badge-retirado { background: #f3f4f6; color: #6b7280; }
+    .badge-alerta { background: #fef3c7; color: #92400e; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .form-full { grid-column: 1 / -1; }
+
+    .section-title { font-size: 11px; font-weight: 700; color: #999; margin: 1rem 0 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .empty { text-align: center; padding: 2.5rem 1rem; color: #999; font-size: 14px; }
+
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 1rem; }
+    .stat { background: #fff; border: 1px solid #e5e5e5; border-radius: 10px; padding: 12px 8px; text-align: center; }
+    .stat .num { font-size: 26px; font-weight: 700; color: #1a1a1a; }
+    .stat .lbl { font-size: 11px; color: #888; margin-top: 2px; }
+
+    .user-bar { font-size: 12px; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+    .alert-box { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #92400e; margin-bottom: 10px; font-weight: 500; }
+
+    .msg-ok { color: #065f46; font-size: 13px; margin-top: 8px; font-weight: 500; }
+    .msg-err { color: #991b1b; font-size: 13px; margin-top: 8px; }
+
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: #4f7df0; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 4px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">🩺</div>
+    <div style="flex:1">
+      <h1>Duplo J HFI <span id="sync-badge" class="sync-badge sync-ing">sincronizando...</span></h1>
+      <p>Controle de stents ureterais · HFI Urologia</p>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="screen-login">
+    <div class="card">
+      <h2>Acesso</h2>
+      <div class="field">
+        <label>Usuário</label>
+        <select id="sel-user">
+          <option value="">Selecione...</option>
+          <option>Sergio</option><option>Joana</option><option>Yasmin</option>
+          <option>Eduardo</option><option>Rafaela</option><option>Vinicius</option>
+          <option>Suede</option><option>Luisa</option><option>Priscilla</option><option>Luiz</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>PIN</label>
+        <input type="password" id="inp-pin" maxlength="4" placeholder="4 dígitos" inputmode="numeric" />
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+      <p id="login-error" class="msg-err" style="display:none"></p>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="screen-main" class="hidden">
+    <div class="user-bar">
+      <span id="user-info-label"></span>
+      <button class="btn-secondary" onclick="syncSheets()">↻ Sincronizar</button>
+    </div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="showTab('lista')" id="btn-lista">Lista</button>
+      <button class="nav-btn" onclick="showTab('novo')" id="btn-novo">+ Novo</button>
+      <button class="nav-btn" onclick="showTab('stats')" id="btn-stats">Resumo</button>
+    </div>
+
+    <!-- LISTA -->
+    <div id="tab-lista">
+      <div id="alertas-container"></div>
+      <div id="lista-container"><div class="empty">Carregando...</div></div>
+    </div>
+
+    <!-- NOVO -->
+    <div id="tab-novo" class="hidden">
+      <div class="card">
+        <h2>Novo stent</h2>
+        <div class="form-grid">
+          <div class="field form-full">
+            <label>Nome do paciente</label>
+            <input type="text" id="f-nome" placeholder="Nome completo" />
+          </div>
+          <div class="field">
+            <label>Prontuário</label>
+            <input type="text" id="f-pront" placeholder="Nº prontuário" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label>Data inserção</label>
+            <input type="date" id="f-datains" />
+          </div>
+          <div class="field">
+            <label>Lateralidade</label>
+            <select id="f-lat"><option value="">—</option><option>D</option><option>E</option><option>Bilateral</option></select>
+          </div>
+          <div class="field">
+            <label>Procedimento</label>
+            <select id="f-proc"><option value="">—</option><option>URS</option><option>PCNL</option><option>ESWL</option><option>Laparotomia</option><option>Outro</option></select>
+          </div>
+          <div class="field">
+            <label>Marca</label>
+            <input type="text" id="f-marca" placeholder="Ex: Cook, Bard..." />
+          </div>
+          <div class="field form-full">
+            <label>Diagnóstico</label>
+            <input type="text" id="f-diag" placeholder="Diagnóstico principal" />
+          </div>
+          <div class="field">
+            <label>CID</label>
+            <input type="text" id="f-cid" placeholder="Ex: N20.1" />
+          </div>
+          <div class="field">
+            <label>Médico inserção</label>
+            <select id="f-mdins">
+              <option value="">—</option>
+              <option>Sergio</option><option>Joana</option><option>Yasmin</option>
+              <option>Eduardo</option><option>Rafaela</option><option>Vinicius</option>
+              <option>Suede</option><option>Luisa</option><option>Priscilla</option><option>Luiz</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="salvarStent()" style="margin-top:8px;">Salvar stent</button>
+        <p id="form-msg"></p>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div id="tab-stats" class="hidden">
+      <div class="stat-row">
+        <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">Total</div></div>
+        <div class="stat"><div class="num" id="s-ativos">0</div><div class="lbl">Ativos</div></div>
+        <div class="stat"><div class="num" id="s-alerta">0</div><div class="lbl">Alerta</div></div>
+      </div>
+      <div id="stats-detail"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUIBrharDVNWikVbROMSq9vkmji18z9xVpmb5okn7LvhbfQtYt4HZVTBq2KAKkZO2TRQ/exec';
+const TOKEN = 'duplo-j-hfi-2026';
+const PIN = '1234';
+const LS_KEY = 'duplo_j_stents';
+let currentUser = '';
+let stents = [];
+
+function buildURL(params) {
+  const url = new URL(SCRIPT_URL);
+  url.searchParams.set('token', TOKEN);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  return url.toString();
+}
+
+async function callScript(params) {
+  const res = await fetch(buildURL(params), { redirect: 'follow' });
+  return res.json();
+}
+
+function setSyncBadge(state) {
+  const b = document.getElementById('sync-badge');
+  b.className = 'sync-badge';
+  if (state === 'ok') { b.classList.add('sync-ok'); b.textContent = '✓ sincronizado'; }
+  else if (state === 'err') { b.classList.add('sync-err'); b.textContent = '✗ erro de sync'; }
+  else { b.classList.add('sync-ing'); b.textContent = 'sincronizando...'; }
+}
+
+function saveLocal() {
+  localStorage.setItem(LS_KEY, JSON.stringify(stents));
+}
+
+function loadLocal() {
+  try {
+    const d = localStorage.getItem(LS_KEY);
+    stents = d ? JSON.parse(d) : [];
+  } catch(e) { stents = []; }
+}
+
+async function syncSheets() {
+  setSyncBadge('ing');
+  try {
+    const r = await callScript({ action: 'get' });
+    if (r.success) {
+      stents = (r.data || []).filter(s => s.id);
+      saveLocal();
+      setSyncBadge('ok');
+    } else throw new Error(r.error);
+  } catch(e) {
+    setSyncBadge('err');
+    console.error(e);
+  }
+  renderLista();
+  renderStats();
+}
+
+async function saveToSheets() {
+  try {
+    setSyncBadge('ing');
+    const r = await callScript({ action: 'save', stents: JSON.stringify(stents) });
+    if (r.success) setSyncBadge('ok');
+    else throw new Error(r.error);
+  } catch(e) {
+    setSyncBadge('err');
+    console.error(e);
+  }
+}
+
+function doLogin() {
+  const user = document.getElementById('sel-user').value;
+  const pin = document.getElementById('inp-pin').value;
+  const err = document.getElementById('login-error');
+  if (!user) { err.style.display = 'block'; err.textContent = 'Selecione um usuário.'; return; }
+  if (pin !== PIN) { err.style.display = 'block'; err.textContent = 'PIN incorreto.'; return; }
+  currentUser = user;
+  document.getElementById('screen-login').classList.add('hidden');
+  document.getElementById('screen-main').classList.remove('hidden');
+  document.getElementById('user-info-label').textContent = 'Usuário: ' + currentUser;
+  document.getElementById('f-datains').value = new Date().toISOString().split('T')[0];
+  loadLocal();
+  renderLista();
+  syncSheets();
+}
+
+function showTab(tab) {
+  ['lista', 'novo', 'stats'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+    document.getElementById('btn-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'stats') renderStats();
+}
+
+function diasDesde(d) {
+  if (!d) return null;
+  return Math.floor((new Date() - new Date(d)) / (1000 * 60 * 60 * 24));
+}
+
+function renderLista() {
+  const c = document.getElementById('lista-container');
+  const ac = document.getElementById('alertas-container');
+  ac.innerHTML = '';
+  if (!stents.length) { c.innerHTML = '<div class="empty">Nenhum stent cadastrado.</div>'; return; }
+  const ativos = stents.filter(s => !s.dataret);
+  const alertas = ativos.filter(s => diasDesde(s.datains) >= 60);
+  if (alertas.length) {
+    ac.innerHTML = `<div class="alert-box">⚠️ ${alertas.length} stent(s) com mais de 60 dias de permanência.</div>`;
+  }
+  c.innerHTML = stents.slice().reverse().map(s => {
+    const dias = diasDesde(s.datains);
+    const retirado = !!s.dataret;
+    const badge = retirado
+      ? '<span class="badge badge-retirado">Retirado</span>'
+      : (dias >= 60
+          ? `<span class="badge badge-alerta">⚠ ${dias} dias</span>`
+          : `<span class="badge badge-ativo">Ativo · ${dias}d</span>`);
+    return `<div class="stent-card">
+      <div class="nome">${s.nome}</div>
+      <div class="info">Pront: ${s.pront || '—'} · ${s.lat || '—'} · ${s.proc || '—'} · ${s.marca || '—'}</div>
+      <div class="info">CID: ${s.cid || '—'} · Inserção: ${s.datains || '—'} · Dr(a): ${s.mdins || '—'}</div>
+      ${badge}
+      ${!retirado
+        ? `<div style="margin-top:10px;"><button class="btn-danger" onclick="retirar('${s.id}')">Registrar retirada</button></div>`
+        : `<div class="info" style="margin-top:6px;">Retirado em: ${s.dataret} · Dr(a): ${s.mdret || '—'}</div>`}
+    </div>`;
+  }).join('');
+}
+
+async function retirar(id) {
+  const s = stents.find(x => x.id === id);
+  if (!s) return;
+  if (!confirm('Confirmar retirada do stent de ' + s.nome + '?')) return;
+  s.dataret = new Date().toISOString().split('T')[0];
+  s.mdret = currentUser;
+  s.log_ret = new Date().toISOString();
+  saveLocal();
+  renderLista();
+  await saveToSheets();
+}
+
+async function salvarStent() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const pront = document.getElementById('f-pront').value.trim();
+  const datains = document.getElementById('f-datains').value;
+  const msg = document.getElementById('form-msg');
+  if (!nome || !pront || !datains) {
+    msg.className = 'msg-err'; msg.textContent = 'Preencha nome, prontuário e data.'; return;
+  }
+  const novo = {
+    id: 'DJ' + Date.now(), nome, pront, datains,
+    lat: document.getElementById('f-lat').value,
+    proc: document.getElementById('f-proc').value,
+    marca: document.getElementById('f-marca').value,
+    diag: document.getElementById('f-diag').value,
+    cid: document.getElementById('f-cid').value,
+    mdins: document.getElementById('f-mdins').value || currentUser,
+    log_ins: new Date().toISOString(),
+    dataret: '', mdret: '', sint: '', clav: '', log_ret: ''
+  };
+  stents.push(novo);
+  saveLocal();
+  msg.className = 'msg-ok'; msg.textContent = 'Salvando...';
+  await saveToSheets();
+  msg.textContent = 'Stent cadastrado e sincronizado!';
+  ['f-nome', 'f-pront', 'f-marca', 'f-diag', 'f-cid'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-lat').value = '';
+  document.getElementById('f-proc').value = '';
+  setTimeout(() => showTab('lista'), 1200);
+}
+
+function renderStats() {
+  document.getElementById('s-total').textContent = stents.length;
+  document.getElementById('s-ativos').textContent = stents.filter(s => !s.dataret).length;
+  document.getElementById('s-alerta').textContent = stents.filter(s => !s.dataret && diasDesde(s.datains) >= 60).length;
+  const porMedico = {};
+  stents.filter(s => !s.dataret).forEach(s => {
+    const md = s.mdins || 'Desconhecido';
+    porMedico[md] = (porMedico[md] || 0) + 1;
+  });
+  const entries = Object.entries(porMedico).sort((a, b) => b[1] - a[1]);
+  document.getElementById('stats-detail').innerHTML =
+    '<div class="section-title">Stents ativos por médico</div>' +
+    (entries.length
+      ? entries.map(([md, n]) =>
+          `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px">
+            <span>${md}</span><span style="font-weight:600">${n}</span>
+          </div>`).join('')
+      : '<div class="empty" style="padding:1rem">Nenhum ativo.</div>');
+}
+</script>
 </body>
 </html>
