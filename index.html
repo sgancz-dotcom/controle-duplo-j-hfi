@@ -177,6 +177,10 @@
               <option>Suede</option><option>Luisa</option><option>Priscilla</option><option>Luiz</option>
             </select>
           </div>
+          <div class="field form-full">
+            <label>Observações</label>
+            <textarea id="f-obs" placeholder="Observações adicionais..." rows="3" style="width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;resize:vertical;color:#1a1a1a;"></textarea>
+          </div>
         </div>
         <button class="btn-primary" onclick="salvarStent()" style="margin-top:8px;">Salvar stent</button>
         <p id="form-msg"></p>
@@ -196,7 +200,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyUIBrharDVNWikVbROMSq9vkmji18z9xVpmb5okn7LvhbfQtYt4HZVTBq2KAKkZO2TRQ/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzzO3ZkoALRhC2j3KRlXCGN9jiYmJDwz0qriWL_mszSLJlrZicKW5RztOaxLsvCApUC4A/exec';
 const TOKEN = 'duplo-j-hfi-2026';
 const LS_KEY = 'duplo_j_stents';
 
@@ -343,6 +347,7 @@ function renderLista() {
       <div class="nome">${s.nome}</div>
       <div class="info">Pront: ${s.pront || '—'} · ${s.lat || '—'} · ${s.proc || '—'} · ${s.marca || '—'}</div>
       <div class="info">CID: ${s.cid || '—'} · Inserção: ${s.datains || '—'} · Dr(a): ${s.mdins || '—'}</div>
+      ${s.obs ? `<div class="info" style="margin-top:4px;font-style:italic;">📝 ${s.obs}</div>` : ''}
       ${badge}${acoes}
     </div>`;
   }).join('');
@@ -379,6 +384,7 @@ async function salvarStent() {
     cid: document.getElementById('f-cid').value,
     mdins: document.getElementById('f-mdins').value || currentUser,
     log_ins: new Date().toISOString(),
+    obs: document.getElementById('f-obs').value.trim(),
     dataret: '', mdret: '', sint: '', clav: '', log_ret: ''
   };
   stents.push(novo);
@@ -386,7 +392,7 @@ async function salvarStent() {
   msg.className = 'msg-ok'; msg.textContent = 'Salvando...';
   await saveToSheets();
   msg.textContent = 'Stent cadastrado e sincronizado!';
-  ['f-nome', 'f-pront', 'f-marca', 'f-diag', 'f-cid'].forEach(id => document.getElementById(id).value = '');
+  ['f-nome', 'f-pront', 'f-marca', 'f-diag', 'f-cid', 'f-obs'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('f-lat').value = '';
   document.getElementById('f-proc').value = '';
   setTimeout(() => showTab('lista'), 1200);
