@@ -113,7 +113,10 @@
   <div id="screen-main" class="hidden">
     <div class="user-bar">
       <span id="user-info-label"></span>
-      <button class="btn-secondary" onclick="syncSheets()">↻ Sincronizar</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn-secondary" onclick="syncSheets()">↻ Sincronizar</button>
+        <button class="btn-secondary" onclick="doLogout()" style="color:#c0392b;">Sair</button>
+      </div>
     </div>
     <div class="nav">
       <button class="nav-btn active" onclick="showTab('lista')" id="btn-lista">Lista</button>
@@ -214,6 +217,19 @@ const USUARIOS = {
 let currentUser = '';
 let isReadOnly = false;
 let stents = [];
+
+function doLogout() {
+  currentUser = '';
+  isReadOnly = false;
+  stents = [];
+  document.getElementById('screen-main').classList.add('hidden');
+  document.getElementById('screen-login').classList.remove('hidden');
+  document.getElementById('sel-user').value = '';
+  document.getElementById('inp-pin').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('sync-badge').className = 'sync-badge sync-ing';
+  document.getElementById('sync-badge').textContent = 'sincronizando...';
+}
 
 function buildURL(params) {
   const url = new URL(SCRIPT_URL);
